@@ -1,4 +1,5 @@
 name: SE333_CI
+
 on:
   push:
     branches:
@@ -7,28 +8,32 @@ on:
 jobs:
   SE333_CI_JOB:
     runs-on: ubuntu-latest
+
     steps:
-      - name: checkout-repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: setupJava
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           architecture: x64
 
-      - name: Install Linter
-        ##TODO
+      - name: Install Linter (Checkstyle)
+        run: |
+          echo "Installing Checkstyle..."
+          sudo apt-get update
+          sudo apt-get install -y checkstyle
 
       - name: Run Checkstyle
-        ##TODO
+        run: |
+          echo "Running Checkstyle..."
+          mkdir -p reports
+          checkstyle -c /google_checks.xml src/main/java/ -f xml -o reports/checkstyle-result.xml || true
 
       - name: Upload Checkstyle Result
-        ##TODO
-
-      - name: Run Maven Test
-        ##TODO
-
-      - name: Jacoco Report
-        ##TODO
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: reports/checkstyle-result.xml
