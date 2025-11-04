@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -20,20 +20,42 @@ jobs:
           distribution: 'temurin'
           architecture: x64
 
-      - name: Install Linter (Checkstyle)
+      # --- Static analysis FIRST (validate phase) ---
+      - name: Run Checkstyle (validate phase, do not fail build)
         run: |
-          echo "Installing Checkstyle..."
-          sudo apt-get update
-          sudo apt-get install -y checkstyle
+          mvn -B -Dcheckstyle.failOnViolation=false validate checkstyle:checkstyle
+          # Copy XML to predictable artifact name
+          mkdir -p artifacts
+          if [ -f target/checkstyle-result.xml ]; then
+            cp target/checkstyle-result.xml artifacts/checkstyle.xml
+          else
+            # Some setups write to this path, grab it if present
+            if [ -f target/checkstyle.xml ]; then
+              cp target/checkstyle.xml artifacts/checkstyle.xml
+            fi
+          fi
 
-      - name: Run Checkstyle
-        run: |
-          echo "Running Checkstyle..."
-          mkdir -p reports
-          checkstyle -c /google_checks.xml src/main/java/ -f xml -o reports/checkstyle-result.xml || true
-
-      - name: Upload Checkstyle Result
+      - name: Upload Checkstyle Report
         uses: actions/upload-artifact@v4
         with:
-          name: checkstyle-report
-          path: reports/checkstyle-result.xml
+          name: checkstyle.xml
+          path: artifacts/checkstyle.xml
+          if-no-files-found: warn
+
+      # --- Tests + Coverage (JaCoCo runs AFTER tests) ---
+      - name: Run Tests with JaCoCo
+        run: |
+          mvn -B test jacoco:report
+          mkdir -p artifacts
+          # Standard JaCoCo XML report location
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            cp target/site/jacoco/jacoco.xml artifacts/jacoco.xml
+          fi
+
+      - name: Upload JaCoCo Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco.xml
+          path: artifacts/jacoco.xml
+          if-no-files-found: warn
+
