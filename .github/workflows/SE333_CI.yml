@@ -40,7 +40,7 @@ jobs:
           path: artifacts/checkstyle.xml
           if-no-files-found: warn
 
-      # --- Coverage without touching pom.xml: use JaCoCo 0.8.12 agent + CLI directly ---
+      # --- use JaCoCo 0.8.12 agent + CLI directly ---
       - name: Download JaCoCo 0.8.12 (agent + cli)
         run: |
           mkdir -p $RUNNER_TEMP/jacoco
