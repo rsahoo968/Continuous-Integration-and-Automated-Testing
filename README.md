@@ -7,7 +7,7 @@
 ---
 
 ## Project Overview
-This repository was created for **SE333 – Software Testing and Continuous Integration**.  
+This repository was created for **Software Testing and Continuous Integration**.  
 The purpose of this project is to design, test, and automate a complete CI pipeline that ensures every code change is analyzed, tested, and verified automatically using **GitHub Actions**.
 
 The project includes:
